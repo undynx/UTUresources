@@ -35,7 +35,7 @@ int main()
         }
     }
 
-    printf("\nLa letra que mas se repite es %c unas %d veces\n", posMayor + 'A', mayor);
+    printf("\nLa letra que mas se repite es la %c, unas %d veces\n", posMayor + 'A', mayor);
 
     return 0;
 }
