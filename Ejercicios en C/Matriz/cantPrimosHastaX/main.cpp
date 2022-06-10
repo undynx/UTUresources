@@ -1,5 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <iostream>
+
+using namespace std;
 
 ///Esta funcion retorna la cantidad de divisores de un numero
 int cantDivisores(int numUser){
@@ -17,33 +18,34 @@ bool es_Primo(int numUser){
     int cant;
     bool confirm;
     cant = cantDivisores(numUser);
-    if(cant != 2)
-        confirm = false;
-    else
+    if(cant == 2)
         confirm = true;
+    else
+        confirm = false;
 
     return confirm;
 }
 
 int main()
 {
+    int intentos=0, numUser, cant, cantNoPrimos=0;
 
-    int intentos, numUser = 0, cantNoPrimos = 0, cantPrimos = 0;
-
-    printf("Ingresa cantidad de intentos: ");
+    printf("Ingresa cantidad de primos que desees buscar: ");
     scanf("%d", &intentos);
 
-    for(int i=0 ; i<intentos ; i++){
-        printf("Ingresa un numero: ");
+    while(intentos>0){
+        printf("Te faltan %d primos", intentos);
+        printf("\nIngresa un numero: ");
         scanf("%d", &numUser);
+
         if(es_Primo(numUser)){
-            cantPrimos++;
-        } else {
+            intentos--;
+        } else{
             cantNoPrimos++;
         }
     }
 
-    printf("\nDe %d intentos, %d fueron no primos y %d fueron primos", intentos, cantNoPrimos, cantPrimos);
+    printf("\nIngresaste %d no primos", cantNoPrimos);
 
     return 0;
 }
