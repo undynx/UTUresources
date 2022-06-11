@@ -36,7 +36,10 @@ bool numEstaEnLaRegion(int numRandom, int inicioLineReg, int inicioColumnReg, in
 int posicion_region(int num);
 
 ///Ingreso fila y columna y encuentra los candidatos para esa celda vacia
-void crear_candidatos (int s [9][9], int fila, int columna, bool candidatos[9]);
+void crear_candidatos (int s[][9], int fila, int columna, bool candidatos[][tam][tam]);
+
+///Devuelve true si ‘num’ es candidato para la celda del Sudoku ‘s’ dada por ‘fila’ y ‘columna’
+bool es_candidato (int s [][9], int num, int fila, int columna, bool candidatos[][tam][tam]);
 
 /*//*//*//*//*//*//*//*//*//*//*//*/
 
@@ -52,6 +55,30 @@ int main()
     scanf("%d", &cantElemInicial);
     generar_sudoku_valido(sudoku, cantElemInicial);
     imprimir_sudoku(sudoku);
+
+    //Descomentar esto para probar la funcion crear_candidatos()
+    /*int filaCandidatos, columnaCandidatos;
+    printf("\nDe que lugar deseas saber los candidatos? 1 significa que es candidato, 0 significa que no lo es");
+    printf("\nIngresa la fila: ");
+    scanf("%d", &filaCandidatos);
+    printf("Ingresa la columna: ");
+    scanf("%d", &columnaCandidatos);
+    crear_candidatos(sudoku, filaCandidatos, columnaCandidatos, candidatos);
+    for(int i=1;i<=tam;i++)
+        printf("%d: %d \n", i, candidatos[filaCandidatos][columnaCandidatos][i]);*/
+
+    //Decomentar esto para probar la funcion es_candidato()
+    /*int numCandidato, filaCandidato, columnaCandidato;
+    bool esCandidato;
+    printf("Que numero deseas saber si es candidato? 1 significa que lo es, 0 significa que no lo es");
+    scanf("%d", &numCandidato);
+    printf("De que fila?");
+    scanf("%d", &filaCandidato);
+    printf("De que columna?");
+    scanf("%d", &columnaCandidato);
+    esCandidato = es_candidato(sudoku, numCandidato, filaCandidato, columnaCandidato, candidatos);
+    printf("%d es candidato?: %d", numCandidato, esCandidato);*/
+
 
 
     return 0;
@@ -133,7 +160,7 @@ bool numEstaEnLaLinea(int numRandom, int lineRandom, int s[][tam]){
     return numEnLinea;
 }
 
-///Recibe un numero y la linea y verifica si esta ese numero en la linea
+///Recibe un numero y la columna y verifica si esta ese numero en la columna
 bool numEstaEnLaColumn(int numRandom, int columnRandom, int s[][tam]){
     bool numEnColumna = false;
 
@@ -186,7 +213,7 @@ bool numEstaEnLaRegion(int numRandom, int line, int column, int s[][tam]){
 ///Ingreso fila y columna y encuentra los candidatos para esa celda vacia
 void crear_candidatos (int s[][9], int fila, int columna, bool candidatos[][tam][tam]){
 
-    for(int i=0 ; i<tam ; i++){
+    for(int i=1 ; i<=tam ; i++){
 
         candidatos[fila][columna][i] = true;
 
@@ -205,5 +232,17 @@ void crear_candidatos (int s[][9], int fila, int columna, bool candidatos[][tam]
 
 }
 
+///Devuelve true si ‘num’ es candidato para la celda del Sudoku ‘s’ dada por ‘fila’ y ‘columna’
+bool es_candidato (int s [][9], int num, int fila, int columna, bool candidatos[][tam][tam]){
 
+    bool esCandidato = false;
+
+    crear_candidatos(s, fila, columna, candidatos);
+
+    if(s[fila][columna]==0 && candidatos[fila][columna][num]==true)
+        esCandidato = true;
+
+    return esCandidato;
+
+}
 
