@@ -14,32 +14,32 @@ const int tam = 9;
 
 //Declaración de Funciones//
 
-/// Inicializa el Sudoku 's' llenando todas las celdas con el valor 0.
+///Inicializa el Sudoku 's' llenando todas las celdas con el valor 0.
 void inicializar_sudoku (int s[][tam]);
 
-/// Imprime el Sudoku en pantalla con un formato matricial mostrando la separación entre regiones.
+///Imprime el Sudoku en pantalla con un formato matricial mostrando la separación entre regiones.
 void imprimir_sudoku (int s[][tam]);
 
-///Genera aleatoriamente un nuevo Sudoku con la cantidad de elementos cant_elem
-void generar_sudoku_valido (int s [9][9], int cant_elem);
-
-///Recibe un numero y la linea y verifica si esta el numero en la linea
-bool numEstaEnLaLinea(int numRandom, int lineaRandom, int s[][tam]);
-
-///Recibe un numero y la linea y verifica si esta ese numero en la linea
-bool numEstaEnLaColumn(int numRandom, int columnRandom, int s[][tam]);
-
-///Ingreso un numero y en donde comienza la linea y la columna de una region, y devuelve si el numero esta en la region
-bool numEstaEnLaRegion(int numRandom, int inicioLineReg, int inicioColumnReg, int s[][tam]);
+///Genera aleatoriamente un nuevo Sudoku ‘s’ con la cantidad de elementos ‘cant_elem’.
+void generar_sudoku_valido (int s[][tam], int cantElem);
 
 ///Ingreso una coordenada de region y devuelve la posicion inicial de esa region
 int posicion_region(int num);
 
+///Devuelve true si ‘num’ es candidato para la celda del Sudoku ‘s’ dada por ‘fila’ y ‘columna’
+bool es_candidato (int s [][9], int num, int fila, int columna);
+
 ///Ingreso fila y columna y encuentra los candidatos para esa celda vacia
 void crear_candidatos (int s[][9], int fila, int columna, bool candidatos[][tam][tam]);
 
-///Devuelve true si ‘num’ es candidato para la celda del Sudoku ‘s’ dada por ‘fila’ y ‘columna’
-bool es_candidato (int s [][9], int num, int fila, int columna, bool candidatos[][tam][tam]);
+///Recibe una region y actualiza el valor del comienzo en fila y columna
+void comienzo_region(int reg, int &comienzoFila, int &comienzoColumna);
+
+///Devuelve true si el tablero ‘s’ cumple con los requisitos de un Sudoku válido
+bool sudoku_valido (int s[][9]);
+
+///Devuelve true si el tablero está completamente resuelto, o false en caso contrario.
+bool sudoku_resuelto (int s [9][9]);
 
 /*//*//*//*//*//*//*//*//*//*//*//*/
 
@@ -67,19 +67,22 @@ int main()
     for(int i=1;i<=tam;i++)
         printf("%d: %d \n", i, candidatos[filaCandidatos][columnaCandidatos][i]);*/
 
+
     //Decomentar esto para probar la funcion es_candidato()
     /*int numCandidato, filaCandidato, columnaCandidato;
     bool esCandidato;
-    printf("Que numero deseas saber si es candidato? 1 significa que lo es, 0 significa que no lo es");
+    printf("Que numero deseas saber si es candidato? 1 significa que lo es, 0 significa que no lo es: ");
     scanf("%d", &numCandidato);
-    printf("De que fila?");
+    printf("De que fila?: ");
     scanf("%d", &filaCandidato);
-    printf("De que columna?");
+    printf("De que columna?: ");
     scanf("%d", &columnaCandidato);
-    esCandidato = es_candidato(sudoku, numCandidato, filaCandidato, columnaCandidato, candidatos);
+    esCandidato = es_candidato(sudoku, numCandidato, filaCandidato, columnaCandidato);
     printf("%d es candidato?: %d", numCandidato, esCandidato);*/
 
-
+    bool esValido;
+    esValido = sudoku_valido(sudoku);
+    printf("El sudoku es valido? \n1 si lo es, 0 si no lo es: %d", esValido);
 
     return 0;
 }
@@ -91,7 +94,6 @@ int main()
 
 ///Inicializa el Sudoku 's' llenando todas las celdas con el valor 0.
 void inicializar_sudoku (int s[][tam]){
-
 
     for(pos1=0 ; pos1<tam ; pos1++)
         for(pos2=0 ; pos2<tam ; pos2++)
@@ -116,12 +118,12 @@ void imprimir_sudoku (int s[][tam]){
 }
 
 ///Genera aleatoriamente un nuevo Sudoku ‘s’ con la cantidad de elementos ‘cant_elem’.
-void generar_sudoku_valido (int s[][tam], int cant_elem){
+void generar_sudoku_valido (int s[][tam], int cantElem){
 
-    int numRandom, lineRandom, columnRandom;
-    bool numEnLinea, numEnColumna, numEnRegion;
+    int numRandom, lineRandom, columnRandom, vueltas=0;
+    bool stop=false, esCandidato;
 
-    while(cant_elem > 0){
+    while(cantElem > 0){
 
         //Lo repite hasta encontrar una combinacion valida
         do{
@@ -130,45 +132,27 @@ void generar_sudoku_valido (int s[][tam], int cant_elem){
             do{
                 lineRandom = rand()%9;
                 columnRandom = rand()%9;
-            }while(s[lineRandom][columnRandom]!=0);
+                vueltas++;
 
-            numEnRegion = numEstaEnLaRegion(numRandom, lineRandom, columnRandom, s);
+                //Para el bucle si este se ejecuta muchas veces
+                if(vueltas>500){
+                    stop = true;
+                    inicializar_sudoku(s);
+                }
+            }while(s[lineRandom][columnRandom]!=0 && stop==false);
 
-            if(numEnRegion){
-                numEnLinea = true;
-                numEnColumna = true;
-            } else {
-                numEnLinea = numEstaEnLaLinea(numRandom, lineRandom, s);
-                numEnColumna = numEstaEnLaColumn(numRandom, columnRandom, s);
-            }
+            esCandidato = es_candidato(s, numRandom, lineRandom, columnRandom);
 
-        }while(numEnLinea != false || numEnColumna != false);
+        }while(esCandidato == false);
 
+        //Me aseguro de que el ultimo numero que ingrese sea 0
+        if(vueltas>=500)
+            numRandom=0;
+
+        //Ubica el numero random en la ubicacion random obtenida
         s[lineRandom][columnRandom] = numRandom;
-        cant_elem--;
+        cantElem--;
     }
-}
-
-///Recibe un numero y la linea y verifica si esta el numero en la linea
-bool numEstaEnLaLinea(int numRandom, int lineRandom, int s[][tam]){
-    bool numEnLinea = false;
-
-    for(int i=0 ; i<tam ; i++){
-        if(s[lineRandom][i] == numRandom)
-            numEnLinea = true;
-    }
-    return numEnLinea;
-}
-
-///Recibe un numero y la columna y verifica si esta ese numero en la columna
-bool numEstaEnLaColumn(int numRandom, int columnRandom, int s[][tam]){
-    bool numEnColumna = false;
-
-    for(int i=0 ; i<tam ; i++){
-        if(s[i][columnRandom] == numRandom)
-            numEnColumna = true;
-    }
-    return numEnColumna;
 }
 
 ///Ingreso una coordenada de region y devuelve la posicion inicial de esa region
@@ -191,23 +175,41 @@ int posicion_region(int num){
     return posInicial;
 }
 
-///Ingreso un numero y en donde comienza la linea y la columna de una region, y devuelve si el numero esta en la region
-bool numEstaEnLaRegion(int numRandom, int line, int column, int s[][tam]){
-    bool numEnRegion = false;
+///Devuelve true si ‘num’ es candidato para la celda del Sudoku ‘s’ dada por ‘fila’ y ‘columna’
+bool es_candidato (int s [][9], int num, int fila, int columna){
 
-    //Primero obtengo el valor inicial de la region tanto de su fila como de su columna
-    int inicioLineReg = posicion_region(line);
-    int inicioColumnReg = posicion_region(column);
+    bool esCandidato = true, estaEnFila = false, estaEnColumna = false, estaEnRegion = false;
+
+    //Verifica si el numero esta en la fila
+    for(int i=0 ; i<tam ; i++){
+        if(s[fila][i] == num)
+            estaEnFila = true;
+    }
+
+    //Verifica si el numero está en la columna
+    for(int i=0 ; i<tam ; i++){
+        if(s[i][columna] == num)
+            estaEnColumna = true;
+    }
+
+    //Verifico si el numero está en la región
+    //Primero obtengo el valor inicial de la region (fila y columna)
+    int inicioLineReg = posicion_region(fila);
+    int inicioColumnReg = posicion_region(columna);
 
     for(int pos1=inicioLineReg ; pos1<=inicioLineReg+2 ; pos1++){
         for(int pos2=inicioColumnReg ; pos2<=inicioColumnReg+2 ; pos2++){
-            if(s[pos1][pos2] == numRandom){
-                numEnRegion = true;
+            if(s[pos1][pos2] == num){
+                estaEnRegion = true;
             }
         }
     }
 
-    return numEnRegion;
+    if(estaEnFila || estaEnColumna || estaEnRegion)
+        esCandidato = false;
+
+    return esCandidato;
+
 }
 
 ///Ingreso fila y columna y encuentra los candidatos para esa celda vacia
@@ -215,34 +217,111 @@ void crear_candidatos (int s[][9], int fila, int columna, bool candidatos[][tam]
 
     for(int i=1 ; i<=tam ; i++){
 
+        //Comienzo igualando el valor a true y si no es candidato se cambia a false
         candidatos[fila][columna][i] = true;
 
-        if(numEstaEnLaLinea(i, fila, s) == true){
+        if(es_candidato(s, i, fila, columna)==false){
             candidatos[fila][columna][i] = false;
-        } else {
-            if(numEstaEnLaColumn(i, columna, s)){
-                candidatos[fila][columna][i] = false;
-            } else {
-                if(numEstaEnLaRegion(i, fila, columna, s)){
-                    candidatos[fila][columna][i] = false;
-                }
-            }
         }
+    }
+}
+
+///Recibe una region y actualiza el valor del comienzo en fila y columna
+void comienzo_region(int reg, int &comienzoFila, int &comienzoColumna){
+
+    switch(reg){
+        case 1:
+            comienzoFila = 0;
+            comienzoColumna = 0;
+        break;
+        case 2:
+            comienzoFila = 0;
+            comienzoColumna = 3;
+        break;
+        case 3:
+            comienzoFila = 0;
+            comienzoColumna = 6;
+        break;
+        case 4:
+            comienzoFila = 3;
+            comienzoColumna = 0;
+        break;
+        case 5:
+            comienzoFila = 3;
+            comienzoColumna = 3;
+        break;
+        case 6:
+            comienzoFila = 3;
+            comienzoColumna = 6;
+        break;
+        case 7:
+            comienzoFila = 6;
+            comienzoColumna = 0;
+        break;
+        case 8:
+            comienzoFila = 6;
+            comienzoColumna = 3;
+        case 9:
+            comienzoFila = 6;
+            comienzoColumna = 6;
+        break;
     }
 
 }
 
-///Devuelve true si ‘num’ es candidato para la celda del Sudoku ‘s’ dada por ‘fila’ y ‘columna’
-bool es_candidato (int s [][9], int num, int fila, int columna, bool candidatos[][tam][tam]){
+///Devuelve true si el tablero ‘s’ cumple con los requisitos de un Sudoku válido
+bool sudoku_valido (int s[][9]){
+    bool sudokuValido = true;
+    int comienzoRegFila = 0, comienzoRegColumna = 0, cantRep = 0;
 
-    bool esCandidato = false;
+    //Chequeo que no se repita ningun numero en las regiones
+    for(int reg=0 ; reg<9 ; reg++){
+        //Actualiza las variables segun la region en la que estoy
+        comienzo_region(reg, comienzoRegFila, comienzoRegColumna);
 
-    crear_candidatos(s, fila, columna, candidatos);
+        for(int i=1 ; i<=9 ; i++){ //elige un numero
+            for(int pos1=comienzoRegFila ; pos1<=comienzoRegFila+2 ; pos1++){ //itera por la matriz para verificar que ese numero no se repite
+                for(int pos2=comienzoRegColumna ; pos2<=comienzoRegColumna+2 ; pos2++){
+                    if(s[pos1][pos2] == i){
+                        cantRep++;
+                    }
+                    if(cantRep > 1){
+                        //Si un numero se repite mas de una vez, setea el sudoku como falso y las variables en 10 para salir del bucle
+                        sudokuValido = false;
+                        i = 10;
+                        reg=10;
+                    }
+                }
+            }
+            //Setea la cantidad de repeticiones en 0 para volver a validar con el siguiente numero
+            cantRep=0;
+        }
 
-    if(s[fila][columna]==0 && candidatos[fila][columna][num]==true)
-        esCandidato = true;
+    }
 
-    return esCandidato;
+    //Si en el chequeo de las regiones el sudoku era invalido no realiza el chequeo por fila y columna
+    if(sudokuValido){
 
+        for(int i=1 ; i<=9 ; i++){ //elige un numero
+            for(int pos1=0 ; pos1<9 ; pos1++){ //itera por la matriz para verificar que ese numero no se repite
+                for(int pos2=0 ; pos2<9 ; pos2++){
+                    if(s[pos1][pos2] == i){
+                        cantRep++;
+                    }
+                    if(cantRep > 1){
+                        //Si un numero se repite mas de una vez, setea el sudoku como falso y las variables en 10 para salir del bucle
+                        sudokuValido = false;
+                        i = 10;
+                    }
+                }
+            }
+            cantRep=0;
+        }
+
+    }
+
+    return sudokuValido;
 }
 
+///Devuelve true si el tablero está completamente resuelto, o false en caso contrario.
+bool sudoku_resuelto (int s [9][9]);
