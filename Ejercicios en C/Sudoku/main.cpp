@@ -5,10 +5,12 @@
 
 using namespace std;
 
-//Variables Globales//
+// PARTICIPANTES //
+// Maité Martínez - 5.142.074-8
+// María Mendoza - 6.263.316-6
 
-int pos1, pos2, pos3;
-const int tam = 9;
+//Variables Globales//
+const int tam = 9, cantVueltas = 10000;
 
 /*//*//*//*//*//*//*//*//*//*//*//*/
 
@@ -48,7 +50,6 @@ int main()
 {
     srand(time(NULL));
     int sudoku[tam][tam], cantElemInicial;
-    bool candidatos[tam][tam][tam];
 
     inicializar_sudoku(sudoku);
     printf("Cuantos elementos queres agregar?: ");
@@ -80,10 +81,6 @@ int main()
     esCandidato = es_candidato(sudoku, numCandidato, filaCandidato, columnaCandidato);
     printf("%d es candidato?: %d", numCandidato, esCandidato);*/
 
-    bool esValido;
-    esValido = sudoku_valido(sudoku);
-    printf("El sudoku es valido? \n1 si lo es, 0 si no lo es: %d", esValido);
-
     return 0;
 }
 
@@ -95,16 +92,16 @@ int main()
 ///Inicializa el Sudoku 's' llenando todas las celdas con el valor 0.
 void inicializar_sudoku (int s[][tam]){
 
-    for(pos1=0 ; pos1<tam ; pos1++)
-        for(pos2=0 ; pos2<tam ; pos2++)
+    for(int pos1=0 ; pos1<tam ; pos1++)
+        for(int pos2=0 ; pos2<tam ; pos2++)
             s[pos1][pos2] = 0;
 }
 
 ///Imprime el Sudoku en pantalla con un formato matricial mostrando la separación entre regiones.
 void imprimir_sudoku (int s[][tam]){
 
-    for(pos1=0 ; pos1<tam ; pos1++){
-        for(pos2=0 ; pos2<tam ; pos2++){
+    for(int pos1=0 ; pos1<tam ; pos1++){
+        for(int pos2=0 ; pos2<tam ; pos2++){
             if(pos2 == 2 || pos2 == 5)
                 printf(" %d |  |", s[pos1][pos2]);
             else
@@ -135,7 +132,7 @@ void generar_sudoku_valido (int s[][tam], int cantElem){
                 vueltas++;
 
                 //Para el bucle si este se ejecuta muchas veces
-                if(vueltas>500){
+                if(vueltas>cantVueltas){
                     stop = true;
                     inicializar_sudoku(s);
                 }
@@ -146,7 +143,7 @@ void generar_sudoku_valido (int s[][tam], int cantElem){
         }while(esCandidato == false);
 
         //Me aseguro de que el ultimo numero que ingrese sea 0
-        if(vueltas>=500)
+        if(vueltas>cantVueltas)
             numRandom=0;
 
         //Ubica el numero random en la ubicacion random obtenida
@@ -261,6 +258,7 @@ void comienzo_region(int reg, int &comienzoFila, int &comienzoColumna){
         case 8:
             comienzoFila = 6;
             comienzoColumna = 3;
+        break;
         case 9:
             comienzoFila = 6;
             comienzoColumna = 6;
@@ -275,12 +273,12 @@ bool sudoku_valido (int s[][9]){
     int comienzoRegFila = 0, comienzoRegColumna = 0, cantRep = 0;
 
     //Chequeo que no se repita ningun numero en las regiones
-    for(int reg=0 ; reg<9 ; reg++){
+    for(int reg=1 ; reg<=9 ; reg++){
         //Actualiza las variables segun la region en la que estoy
         comienzo_region(reg, comienzoRegFila, comienzoRegColumna);
 
         for(int i=1 ; i<=9 ; i++){ //elige un numero
-            for(int pos1=comienzoRegFila ; pos1<=comienzoRegFila+2 ; pos1++){ //itera por la matriz para verificar que ese numero no se repite
+            for(int pos1=comienzoRegFila ; pos1<=comienzoRegFila+2 ; pos1++){ //itera por la submatriz para verificar que ese numero no se repite
                 for(int pos2=comienzoRegColumna ; pos2<=comienzoRegColumna+2 ; pos2++){
                     if(s[pos1][pos2] == i){
                         cantRep++;
@@ -301,6 +299,7 @@ bool sudoku_valido (int s[][9]){
 
     //Si en el chequeo de las regiones el sudoku era invalido no realiza el chequeo por fila y columna
     if(sudokuValido){
+        cantRep = 0;
 
         for(int i=1 ; i<=9 ; i++){ //elige un numero
             for(int pos1=0 ; pos1<9 ; pos1++){ //itera por la matriz para verificar que ese numero no se repite
@@ -312,6 +311,8 @@ bool sudoku_valido (int s[][9]){
                         //Si un numero se repite mas de una vez, setea el sudoku como falso y las variables en 10 para salir del bucle
                         sudokuValido = false;
                         i = 10;
+                        pos2 = 10;
+                        pos1 = 10;
                     }
                 }
             }
@@ -324,4 +325,24 @@ bool sudoku_valido (int s[][9]){
 }
 
 ///Devuelve true si el tablero está completamente resuelto, o false en caso contrario.
-bool sudoku_resuelto (int s [9][9]);
+bool sudoku_resuelto (int s [9][9]){
+    bool resuelto = true;
+
+    if(sudoku_valido(s)){
+        for(int pos1=0 ; pos1<9 ; pos1++){
+            for(int pos2=0 ; pos2<9 ; pos2++){
+                if(s[pos1][pos2] == 0){
+                    resuelto = false; //si alguna celda es 0, setea la variable como falsa
+                    //setea las variables en 10 para salir del bucle
+                    pos1 = 10;
+                    pos2 = 10;
+                }
+            }
+        }
+
+    } else{
+        resuelto = false;
+    }
+
+    return resuelto;
+}
